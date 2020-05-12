@@ -11,7 +11,7 @@ public class ChinaData {
     /**
      * name 地区名
      */
-    private String name;
+    private String area;
     /**
      * nowConfirm 现有确诊
      */
