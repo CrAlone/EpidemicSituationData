@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>境外输入城市</title>
+    <script type="text/javascript" src="../Echarts/echarts.min.js"></script>
+</head>
+<body>
+    <div id="main" style="width: 600px;height:400px;">
+
+    </div>
+<script th:inline="javascript">
+    //境外输入城市
+    var area = [[${area}]];
+    //输入人数
+    var tip = [[${tip}]];
+    var myChart = echarts.init(document.getElementById("main"));
+    var option = {
+        title:{
+            text:'境外输入省市TOP10'
+        },
+        color:['#3398DB'],
+        tooltip:{
+            trigger:'axis',
+            axisPointer:{
+                type:'shadow'
+            }
+        },
+       xAxis: {
+            type: 'category',
+            data:JSON.parse(area),
+            axisTick: {
+               alignWithLabel: true
+            }
+       },
+       yAxis:{
+            type:'value'
+       },
+        series:[{
+            name: '境外输入',
+            type:'bar',
+            barWidth: '60%',
+            data:JSON.parse(tip)
+        }]
+    };
+    myChart.setOption(option);
+</script>
+</body>
+</html>

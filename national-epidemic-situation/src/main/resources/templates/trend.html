@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>累计确证人数/治愈/死亡</title>
+    <script type="text/javascript" src="../Echarts/echarts.min.js"></script>
+
+</head>
+<body>
+    <div id="main" style="width: 800px;height:400px;">
+
+    </div>
+<script th:inline="javascript">
+    //获取累计确证人数
+    var confirm = [[${confirm}]];
+    //累计治愈
+    var heal = [[${heal}]]
+    //累计死亡
+    var dead = [[${dead}]]
+    //日期
+    var data = [[${data}]]
+    var myChart = echarts.init(document.getElementById("main"));
+    var option = {
+        title:{
+            text:"全国累计确证/治愈/死亡趋势"
+        },
+        tooltip:{
+            trigger:"axis"
+        },
+        legend:{
+            data:['累计确证','累计治愈','累计死亡']
+        },
+        xAxis:{
+            data:JSON.parse(data)
+        },
+        yAxis:{
+            type:'value'
+        },
+        series:[{
+            name:'累计确证',
+            type: 'line',
+            data:JSON.parse(confirm)
+        },{
+            name: '累计治愈',
+            type: 'line',
+            data: JSON.parse(heal)
+        },{
+            name: '累计死亡',
+            type: 'line',
+            data: JSON.parse(dead)
+        }]
+    };
+    myChart.setOption(option);
+</script>
+</body>
+</html>

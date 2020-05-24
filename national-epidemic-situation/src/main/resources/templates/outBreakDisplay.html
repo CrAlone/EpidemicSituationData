@@ -2,28 +2,434 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>疫情展示</title>
+    <title th:text="#{list.title}">实时更新,新冠疫情最新动态</title>
+    <script type="text/javascript" src="../echarts/echarts.min.js"></script>
+    <script type="text/javascript" src="../echarts/china.js"></script>
+    <script type="text/javascript" src="webjars/jquery/3.5.1/jquery.min.js"></script>
 </head>
-<body>
-    <table>
-        <thead>
-            <tr>
-                <th>地区</th>
-                <th>新增确证</th>
-                <th>累计确证</th>
-                <th>治愈</th>
-                <th>死亡</th>
-            </tr>
+<script type="text/javascript">
+    function add() {
+        $("#top").hide();
+        $("#put").hide();
+        $("#creat").show();
+    }
+    function total() {
+        $("#top").hide();
+        $("#creat").hide();
+        $("#put").show();
+    }
+    function over() {
+        $("#put").hide();
+        $("#creat").hide();
+        $("#top").show();
+    }
+    function cur() {
+        $("#polyline").hide();
+        $("#trend").hide();
+        $("#curve").show();
+    }
+    function tre() {
+        $("#polyline").hide();
+        $("#curve").hide();
+        $("#trend").show();
+    }
+    function pol() {
+        $("#trend").hide();
+        $("#curve").hide();
+        $("#polyline").show();
+    }
+
+</script>
+<body style="background: #ffffff">
+<h2 th:utext="#{list.h2}" style="text-align: center;border-left: #c2c2c2    1px solid;border-right: #c2c2c2 1px solid; ">中国疫情(包括港澳台)</h2><br>
+    <div style="text-align: center">
+        <soan th:text="#{list.text1}">欢迎</soan>
+        <span style="color: #0000FF" th:text="${user.name}">xxx</span>
+        <span th:text="#{list.text2}">进入疫情系统</span>
+        <a th:href="@{/login}" th:text="#{list.out}" style="color: #f23a3b">退出登录</a>
+    </div>
+<div content="center" style="position: absolute;left: 30%;width: 40%;background: #ffffff;border-left: #c2c2c2  1px solid;border-right: #c2c2c2 1px solid;border-top: #c2c2c2 1px solid " >
+    <div th:object="${statistics}" style="height: 400px">
+        <div  style="font-size: 18px;position: absolute;font-weight: bolder" >
+            <label>
+                <a th:href="@{/Epidemic/(language='zh_CN')}">中文</a>
+                <a th:href="@{/Epidemic/(language='en_US')}">英文</a>
+            </label>
+                <span th:text="#{list.span}">统计截止</span><span th:text="*{lastTime}">时间</span></div>
+        <div style="width: 26%;height: 160px;background: #fdf1f1;position: absolute;left:   10.5%;top: 30px">
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;color: #cc1e1e" th:text="*{confirm}">累计确诊</div><br>
+            <div th:text="#{list.en1}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">累计确诊</div>
+        </div>
+        <div  style="width: 26%;height: 160px;background: #f1f8f4;position: absolute;left: 37.5%;top: 30px" >
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;color: #178b50" th:text="*{heal}">累计治愈</div><br>
+            <div th:text="#{list.en2}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">累计治愈</div>
+        </div>
+        <div  style="width: 26%;height: 160px;background: #f3f6f8;position: absolute;left: 64.5%;top: 30px" >
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;" th:text="*{dead}">累计死亡</div><br>
+            <div th:text="#{list.en3}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">累计死亡</div>
+        </div>
+        <div style="width: 26%;height: 160px;background: #fdf1f1;position: absolute;left:   10.5%;top: 200px">
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;color: #f23a3b" th:text="*{nowConfirm}">现有确诊</div><br>
+            <div th:text="#{list.en4}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">现有确诊</div>
+
+        </div>
+        <div  style="width: 26%;height: 160px;background: #fdf1f1;position: absolute;left: 37.5%;top: 200px" >
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;color: #ca3f81" th:text="*{noInfect}">无症状感染者</div><br>
+            <div th:text="#{list.en5}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">无症状感染者</div>
+        </div>
+        <div  style="width: 26%;height: 160px;background: #faf2f6;position: absolute;left: 64.5%;top: 200px" >
+            <div style="font-size: 35px;height:50px;text-align: center;line-height:160px;color: #f05926" th:text="*{importedCase}">境外输入</div><br>
+            <div th:text="#{list.en6}" style="font-size: 20px;height:50px;text-align: center;line-height:80px;">境外输入</div>
+        </div>
+    </div>
+    <div style="margin-top: 20px;margin-bottom: 10px">
+<!--        中国地图数据-->
+        <div id="map" style="width: 100%;height:680px;"></div>
+        <script th:inline="javascript">
+            var chinaList = [[${chinaList}]];
+            var myChart = echarts.init(document.getElementById("map"));
+            var option = {
+                title:{
+                    text:'中国疫情图',
+                    left:'center',
+                },
+                tooltip: {
+                    trigger: 'item',
+                },
+                visualMap: {
+                    type: 'piecewise',
+                    pieces: [
+                        {min: 10000, label: '确诊大于等于10000人', color: '#008888'},
+                        {min: 1000, max: 9999, label: '确诊1000-9999', color: '#00aaaa'},
+                        {min: 500, max: 999, label: '确诊500-999', color: '#00dddd'},
+                        {min: 100, max: 499, label: '确诊100-499', color: '#00ffff'},
+                        {min: 10, max: 99, label: '确诊10-99', color: '#33ffff'},
+                        {min: 1, max: 9, label: '确诊1-9', color: '#66ffff'},
+                        {value: 0, label: '确诊0人', color: '#99ffff'}
+                    ],
+                    color: ['#E0022B', '#E09107', '#A3E00B']
+                },
+                series:[
+                    {
+                        name:'确诊数',
+                        type:'map',
+                        mapType:'china',
+                        roam:false,
+                        label:{
+                            show:true,
+                            color:'#000'
+                        },
+                        data:JSON.parse(chinaList)
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        </script>
+    </div>
+    <div style="width: 100%">
+        <!--    柱状图-->
+        <div id="creat" style="height:400px;">
+        </div>
+        <script th:inline="javascript">
+            var myChart = echarts.init(document.getElementById("creat"));
+            var area = [[${area}]];
+            var tip = [[${tip}]];
+            var option = {
+                title:{
+                    text:'境外输入TOP10'
+                },
+                tooltip: {  // 提示框组件
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    // 转化为json对象
+                    data: JSON.parse(area),
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '境外输入',
+                        type: 'bar',
+                        barWidth: '40%',
+                        data: JSON.parse(tip),
+                        itemStyle: {
+                            normal: {
+                                color: function (params) {
+                                    let colorList = ['#f06161', '#f26a5f', '#f77f5b', '#f8835a', '#f98a59', '#fc9957', '#fc9957', '#fc9957', '#fc9957', '#fc9957'];
+                                    return colorList[params.dataIndex]
+                                }
+                            },
+                        },
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        </script>
+        <div hidden id="put" style="height:400px;width: 1024px;">
+        </div>
+        <script th:inline="javascript">
+            var myChart = echarts.init(document.getElementById("put"));
+            var data3 = [[${data3}]];
+            var importedCase2 = [[${importedCase2}]]
+            var option = {
+                title:{
+                    text:'境外输入新增趋势'
+                },
+                color: ['#f38283'],
+                tooltip: {  // 提示框组件
+                    trigger: 'axis'
+                },
+                legend: {  // 曲线含义说明
+                    data: [{
+                        name: '境外输入新增',
+                        icon: 'rect',
+                    }],
+                    left: 15,
+                    top: 10,
+                },
+                grid: {
+                    x: 80,
+                },
+                xAxis: {
+                    // 转化为json对象
+                    data: JSON.parse(data3)
+                    // data: dateStr
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    name: '境外输入新增',
+                    data: JSON.parse(importedCase2),
+                    type: 'line'
+                }]
+            };
+            myChart.setOption(option);
+        </script>
+        <div hidden id="top" style="height:400px;width: 1024px;">
+        </div>
+        <script th:inline="javascript">
+            var myChart = echarts.init(document.getElementById("top"));
+            var data2 = [[${data2}]];
+            var importedCase = [[${importedCase}]]
+            var option = {
+                tooltip: {  // 提示框组件
+                    trigger: 'axis'
+                },
+                legend: {  // 曲线含义说明
+                    data: [{
+                        name: '境外输入累计',
+                        icon: 'rect',
+                    }],
+                    left: 15,
+                    top: 10,
+                },
+                grid: {
+                    x: 80,
+                },
+                xAxis: {
+                    // 转化为json对象
+                    data: JSON.parse(data2)
+                    // data: dateStr
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    name: '境外输入累计',
+                    data: JSON.parse(importedCase),
+                    // data: nowConfirmStr,
+                    type: 'line'
+                }]
+            };
+            myChart.setOption(option);
+        </script>
+        <input onclick="total()" type="button" value="境外输入累计趋势" style="width: 17%;position: absolute;left: 38%;top: 49%">
+        <input onclick="over()" type="button" value="境外输入新增趋势" style="width: 17%;position: absolute;left: 58%;top: 49%">
+        <input onclick="add()" type="button" value="境外输入top10" style="width: 17%;position: absolute;left: 18%;top: 49%">
+    </div>
+    <div style="width: 100%">
+        <!--    全国现有确诊趋势-->
+        <div id="curve" style="height:400px;">
+        </div>
+        <script th:inline="javascript">
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('curve'));
+            //接受后台数据 日期
+            var data = [[${data4}]];
+            //接受后台数据 确诊人数
+            var nowConfirm = [[${nowConfirm}]];
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '全国现有确诊趋势'
+                },
+                tooltip: {
+                    trigger:'axis'
+                },
+                legend: {
+                    data:'现有确诊'
+                },
+                xAxis: {
+                    data: JSON.parse(data),
+                },
+                yAxis: {
+                    type:'value',
+                },
+                series: [{
+                    name: '现有确诊',
+                    type: 'line',
+                    data: JSON.parse(nowConfirm)
+                }]
+            };
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+        </script>
+        <!--    全国新增趋势-->
+        <div hidden id="polyline" style="width: 1024px;height:400px;">
+        </div>
+        <script th:inline="javascript">
+            //获取新增确诊
+            var confirm = [[${confirm}]]
+            //获取新增疑似
+            var suspect = [[${suspect}]]
+            //获取时间
+            var data = [[${data}]]
+            var myChart = echarts.init(document.getElementById("polyline"));
+            var option = {
+                title: {
+                    text:'全国疫情新增趋势'
+                },
+                tooltip:{
+                    trigger:"axis"
+                },
+                legend:{
+                    data:['','','','新增确诊','新增疑似']
+                },
+                xAxis: {
+                    data:JSON.parse(data)
+                },
+                yAxis: {
+                    type:'value',
+                },
+                series:[{
+                    name:'新增确诊',
+                    type:'line',
+                    data:JSON.parse(confirm)
+                },{
+                    name: '新增疑似',
+                    type: "line",
+                    data: JSON.parse(suspect)
+                }]
+            };
+            myChart.setOption(option);
+        </script>
+        <!--    全国累计确诊/治愈/死亡趋势-->
+        <div hidden id="trend" style="width: 1024px;height:400px;">
+        </div>
+        <script th:inline="javascript">
+            //获取累计确诊人数
+            var confirm = [[${confirm2}]];
+            //累计治愈
+            var heal = [[${heal}]]
+            //累计死亡
+            var dead = [[${dead}]]
+            //日期
+            var data = [[${data5}]]
+            var myChart = echarts.init(document.getElementById("trend"));
+            var option = {
+                title:{
+                    text:"全国累计确诊/治愈/死亡趋势"
+                },
+                tooltip:{
+                    trigger:"axis"
+                },
+                legend:{
+                    data:['','','','累计确诊','累计治愈','累计死亡']
+                },
+                xAxis:{
+                    data:JSON.parse(data)
+                },
+                yAxis:{
+                    type:'value',
+                },
+                series:[{
+                    name:'累计确诊',
+                    type: 'line',
+                    data:JSON.parse(confirm)
+                },{
+                    name: '累计治愈',
+                    type: 'line',
+                    data: JSON.parse(heal)
+                },{
+                    name: '累计死亡',
+                    type: 'line',
+                    data: JSON.parse(dead)
+                }]
+            };
+            myChart.setOption(option);
+        </script>
+        <input onclick="cur()" type="button" value="全国现有确诊趋势" style="width: 17%;position: absolute;left: 58%;top: 62.5%">
+        <input onclick="pol()" type="button" value="全国疫情新增趋势" style="width: 17%;position: absolute;left: 38%;top: 62.5%">
+        <input onclick="tre()" type="button" value="全国疫情累计趋势" style="width: 17%;position: absolute;left: 18%;top: 62.5%">
+
+    </div>
+    <!--    饼状图-->
+    <div>
+    <div id="exiting" style="width: 80%;height:150px;"></div>
+    <script th:inline="javascript">
+        var str = [[${existings}]];
+        var count = [[${count}]];
+        var myChart = echarts.init(document.getElementById("exiting"));
+        var option = {
+            title: {  // 标题组件
+                text: '全国现有确诊构成:'+count+'例'
+            },
+            tooltip: {  // 提示框组件
+                trigger: 'axis'
+            },
+            series: [
+                {
+                    type: 'pie',
+                    radius: '55%',
+                    center: ['55%', '60%'],
+                    data: JSON.parse(str),
+                }
+            ]
+        };
+        myChart.setOption(option);
+    </script>
+    </div>
+<!--    表单数据-->
+    <span  style="color: #cccccc;font-size: 10px">7:00-10:00为更新高峰，数据如有滞后请谅解。</span>
+    <table style="width: 100%">
+        <thead >
+        <tr>
+            <th th:text="#{list.table.name1}" style="background: #c2c2c2;">地区</th>
+            <th th:text="#{list.table.name2}" style="background: #FcF2E8;color: #ff5d00">新增确诊</th>
+            <th th:text="#{list.table.name3}" style="background: #fdeeee;color: #f55253">累计确诊</th>
+            <th th:text="#{list.table.name4}" style="background: #e9f7ec;color: #178b50">治愈</th>
+            <th th:text="#{list.table.name5}" style="background: #f3f6f8;color: #4e5a65">死亡</th>
+            <th th:text="#{list.table.name6}" style="background: #f5f5f5;color: #222222">疫情</th>
+        </tr>
         </thead>
         <tbody>
-           <tr th:each="data:${datalist}">
-                <td th:text="${data.area}">area</td>
-                <td th:text="${data.nowConfirm}">nowConfirm</td>
-                <td th:text="${data.confirm}">confirm</td>
-                <td th:text="${data.heal}">heal</td>
-                <td th:text="${data.dead}">dead</td>
-           </tr>
+        <tr th:each="data:${datalist}">
+            <td th:text="${data.area}" style="text-align: center;border-bottom: 1px #f5f5f5 solid">area</td>
+            <td th:text="${data.nowConfirm}"style="text-align: center;border-bottom: 1px #f5f5f5 solid">nowConfirm</td>
+            <td th:text="${data.confirm}" style="text-align: center;border-bottom: 1px #f5f5f5 solid">confirm</td>
+            <td th:text="${data.heal}"style="text-align: center;border-bottom: 1px #f5f5f5 solid">heal</td>
+            <td th:text="${data.dead}"style="text-align: center;border-bottom: 1px #f5f5f5 solid">dead</td>
+            <td style="text-align: center;border-bottom: 1px #f5f5f5 solid;color: #f23a3b"> <span th:text="${data.dayNum}>0?${data.dayNum}+'天':'较日'">持续</span><span th:text="${data.addAndCut}>0?${data.addAndCut}+'新增':${data.addAndCut}-${data.addAndCut}+'新增'">新增</span></td>
+        </tr>
         </tbody>
     </table>
+</div>
 </body>
+<!--<script type="text/javascript" src="../layer/layer.js"></script>-->
 </html>

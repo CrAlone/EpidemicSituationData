@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.ogr">
+<head>
+    <meta charset="UTF-8">
+    <title>疫情曲线分析图</title>
+    <script type="text/javascript" src="../Echarts/echarts.min.js"></script>
+</head>
+<body>
+<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+    <div id="main" style="width: 600px;height:400px;">
+
+    </div>
+<script th:inline="javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    //接受后台数据 日期
+    var data = [[${data}]];
+    //接受后台数据 确证人数
+    var nowConfirm = [[${nowConfirm}]];
+    // 指定图表的配置项和数据
+    var option = {
+        title: {
+            text: '全国现有确证趋势'
+        },
+        tooltip: {
+            trigger:'axis'
+        },
+        legend: {
+            data:'现有确证'
+        },
+        xAxis: {
+            data: JSON.parse(data)
+        },
+        yAxis: {
+            type:'value'
+        },
+        series: [{
+            name: '现有确证',
+            type: 'line',
+            data: JSON.parse(nowConfirm)
+        }]
+    };
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+</script>
+</body>
+</html>
